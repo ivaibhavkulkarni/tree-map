@@ -1,111 +1,90 @@
-"use client"
+// src/components/tree-map.tsx
+"use client";
 
-import { useState, useEffect, useMemo } from "react"
-import { GoogleMap, MarkerF, InfoWindowF, useLoadScript } from "@react-google-maps/api"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Leaf, MapPin, Info, Calendar, Ruler, AlertTriangle, Droplets, Sun, ThermometerSun } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Progress } from "@/components/ui/progress"
-import { hyderabadTrees } from "../data/trees"
-
-interface Tree {
-  id: number
-  species: string
-  scientificName: string
-  age: number
-  height: number
-  health: "Good" | "Fair" | "Poor"
-  lastMaintenance: string
-  benefits?: {
-    oxygen?: string
-    carbonSequestration?: string
-    shadeProvided?: string
-    waterFiltering?: string
-  }
-  location: {
-    lat: number
-    lng: number
-    address: string
-    area: string
-  }
-}
+import { useState, useEffect, useMemo } from "react";
+import { GoogleMap, MarkerF, InfoWindowF, useLoadScript } from "@react-google-maps/api";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Leaf, MapPin, Info, Calendar, Ruler, AlertTriangle, Droplets, Sun, ThermometerSun } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { hyderabadTrees, Tree } from "../data/trees";
 
 export default function TreeMap() {
-  const [selectedTree, setSelectedTree] = useState<Tree | null>(null)
-  const [isMobile, setIsMobile] = useState(false)
-  const [activeInfoWindow, setActiveInfoWindow] = useState<number | null>(null)
-  const [map, setMap] = useState<google.maps.Map | null>(null)
+  const [selectedTree, setSelectedTree] = useState<Tree | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [activeInfoWindow, setActiveInfoWindow] = useState<number | null>(null);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
 
   const { isLoaded } = useLoadScript({
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "", 
-  })
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+  });
 
   const markerIcon = useMemo(() => {
     if (!isLoaded || !window.google?.maps) {
-      return null
+      return null;
     }
     return {
       url: "/tree-marker.png",
       scaledSize: new window.google.maps.Size(45, 45),
       anchor: new window.google.maps.Point(15, 45),
-    }
-  }, [isLoaded])
+    };
+  }, [isLoaded]);
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
+      setIsMobile(window.innerWidth < 768);
+    };
 
-    checkMobile()
-    window.addEventListener("resize", checkMobile)
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
 
-    return () => window.removeEventListener("resize", checkMobile)
-  }, [])
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const handleTreeClick = (tree: Tree) => {
-    setSelectedTree(tree)
-    setActiveInfoWindow(tree.id)
+    setSelectedTree(tree);
+    setActiveInfoWindow(tree.id);
     if (map) {
-      map.panTo({ lat: tree.location.lat, lng: tree.location.lng })
-      map.setZoom(16)
+      map.panTo({ lat: tree.location.lat, lng: tree.location.lng });
+      map.setZoom(16);
     }
     if (isMobile) {
       setTimeout(() => {
-        document.getElementById("tree-details")?.scrollIntoView({ behavior: "smooth" })
-      }, 100)
+        document.getElementById("tree-details")?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
     }
-  }
+  };
 
   const getHealthColor = (health: string) => {
     switch (health) {
       case "Good":
-        return "bg-emerald-500 hover:bg-emerald-600"
+        return "bg-emerald-500 hover:bg-emerald-600";
       case "Fair":
-        return "bg-amber-500 hover:bg-amber-600"
+        return "bg-amber-500 hover:bg-amber-600";
       case "Poor":
-        return "bg-red-500 hover:bg-red-600"
+        return "bg-red-500 hover:bg-red-600";
       default:
-        return "bg-slate-500 hover:bg-slate-600"
+        return "bg-slate-500 hover:bg-slate-600";
     }
-  }
+  };
 
   const getHealthProgress = (health: string) => {
     switch (health) {
       case "Good":
-        return 90
+        return 90;
       case "Fair":
-        return 60
+        return 60;
       case "Poor":
-        return 30
+        return 30;
       default:
-        return 50
+        return 50;
     }
-  }
+  };
 
   // Map center
-  const center = useMemo(() => ({ lat: 17.385, lng: 78.4867 }), []) // Hyderabad coordinates
+  const center = useMemo(() => ({ lat: 17.385, lng: 78.4867 }), []); // Hyderabad coordinates
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[80vh]">
@@ -124,11 +103,11 @@ export default function TreeMap() {
               fullscreenControl: false,
             }}
           >
-            {hyderabadTrees.map((tree) => (
+            {hyderabadTrees.map((tree: Tree) => (
               <MarkerF
                 key={tree.id}
                 position={{ lat: tree.location.lat, lng: tree.location.lng }}
-                icon={markerIcon || undefined} // Use undefined if markerIcon is null
+                icon={markerIcon || undefined}
                 onClick={() => handleTreeClick(tree)}
               >
                 {activeInfoWindow === tree.id && (
@@ -254,7 +233,7 @@ export default function TreeMap() {
                       <Sun className="h-4 w-4 text-amber-500" />
                       <span className="text-sm font-medium">Shade</span>
                     </div>
-                    <p className="text-sm text-slate-600">Provides {selectedTree.height * 5}m²_Of shade area</p>
+                    <p className="text-sm text-slate-600">Provides {selectedTree.height * 5}m² of shade area</p>
                   </div>
 
                   <div className="flex flex-col p-3 border rounded-lg">
@@ -352,5 +331,5 @@ export default function TreeMap() {
         )}
       </div>
     </div>
-  )
+  );
 }
